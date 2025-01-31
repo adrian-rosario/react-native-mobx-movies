@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import {
   View,
@@ -7,22 +7,26 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Header from "../view-ui/Header";
 import { allStyle } from "../../styles/allStyle";
 import Icon from "react-native-vector-icons/Ionicons";
 import store from "../../store/store";
+import {
+  BottomSheetModal,
+  BottomSheetModalProvider,
+} from "@gorhom/bottom-sheet";
+import FormUser from "../view-ui/FormUser";
 
 const Login = observer(() => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  useEffect(() => {}, []);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
 
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in both fields.");
+      store.setError("Please fill in both fields");
       return;
     }
     store.userLogin(email, password);
@@ -30,6 +34,21 @@ const Login = observer(() => {
 
   const handleLogout = () => {
     store.userLogout();
+  };
+
+  // bottomsheet
+  const bottomSheetModalRef = useRef(null);
+  const openBottomSheet = () => {
+    bottomSheetModalRef.current?.present();
+    setBottomSheetOpen(true);
+  };
+  const closeBottomSheet = () => {
+    bottomSheetModalRef.current?.dismiss();
+    setBottomSheetOpen(false);
+  };
+
+  const focusClear = () => {
+    store.clearError();
   };
 
   return (
@@ -40,14 +59,14 @@ const Login = observer(() => {
       style={allStyle.gradient}
     >
       <View>
-        <Header />
+        {/* <Header /> */}
 
         <View style={[allStyle.linedJar, { marginTop: 20 }]}>
           {/* top */}
           <View style={styles.cardTop}>
             <View style={{ flex: 1 }}>
               <Text style={[allStyle.text, allStyle.bold]}>
-                Registered users will be able to post reviews &amp; movies.
+                Registered users can post movies &amp; reviews
               </Text>
             </View>
             <View
@@ -57,7 +76,7 @@ const Login = observer(() => {
 
           {/* bottom */}
           <View style={styles.cardBottom}>
-            <View style={{ marginLeft: 10, marginTop: 10 }}>
+            <View style={{ marginLeft: 8, marginTop: 0 }}>
               <View
                 style={{
                   flexDirection: "row",
@@ -65,74 +84,152 @@ const Login = observer(() => {
               >
                 <View
                   style={{
-                    height: 400,
+                    height: 500,
                     width: "100%",
                   }}
                 >
                   <View style={styles.formJar}>
-                    <Text
-                      style={[
-                        allStyle.text,
-                        // display icon at full opacity if logged in
-                        {
-                          marginBottom: 6,
-                          opacity: store.userLoggedIn ? 1 : 0.75,
-                        },
-                      ]}
+                    {/* <View
+                      style={{
+                        width: "100%",
+                        height: store.userLoggedIn ? 0 : 0,
+                      }}
+                    ></View> */}
+
+                    <View
+                      style={{
+                        height: 109, // 90 114
+                        alignItems: "center",
+                      }}
                     >
-                      <Icon name='person' size={60} />
-                    </Text>
-
-                    {store.userDetails && store.userDetails.id && (
-                      <Text style={[allStyle.text, { marginBottom: 12 }]}>
-                        {store.userDetails.name}
+                      <Text
+                        style={[
+                          allStyle.text,
+                          // display icon at full opacity if logged in
+                          {
+                            marginBottom: 6,
+                            opacity: store.userLoggedIn ? 1 : 0.75,
+                          },
+                        ]}
+                      >
+                        <Icon name='person' size={60} />
                       </Text>
-                    )}
 
-                    <TextInput
-                      style={[
-                        styles.input,
-                        allStyle.text,
-                        { marginBottom: 18 },
-                      ]}
-                      placeholder='Email'
-                      value={email}
-                      onChangeText={setEmail}
-                      keyboardType='email-address'
-                      autoCapitalize='none'
-                      autoComplete='email'
-                      placeholderTextColor='#adb5bd'
-                      editable={store.userDetails && !store.userDetails.id}
-                    />
-                    <TextInput
-                      style={[
-                        styles.input,
-                        allStyle.text,
-                        { marginBottom: 20 },
-                      ]}
-                      placeholder='Password'
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry
-                      autoCapitalize='none'
-                      autoComplete='password'
-                      placeholderTextColor='#adb5bd'
-                      editable={store.userDetails && !store.userDetails.id}
-                    />
+                      {store.errorMessage && store.errorMessage.length > 0 && (
+                        <View
+                          style={{
+                            backgroundColor: "#cb4b16",
+                            borderRadius: 6,
+                            padding: 6,
+                          }}
+                        >
+                          <Text style={allStyle.text}>
+                            {store.errorMessage}
+                          </Text>
+                        </View>
+                      )}
 
-                    <TouchableOpacity
-                      style={[
-                        styles.button,
-                        store.userLoggedIn
-                          ? { backgroundColor: "#2aa198" }
-                          : "",
-                      ]}
-                      onPress={store.userLoggedIn ? handleLogout : handleLogin}
+                      {store.userDetails && store.userDetails.id && (
+                        <Text style={[allStyle.text, { marginBottom: 12 }]}>
+                          {store.userDetails.name}
+                        </Text>
+                      )}
+                    </View>
+
+                    <View
+                      style={{
+                        width: "100%",
+                        height: 270,
+                      }}
                     >
-                      <Text style={[allStyle.text, allStyle.bold]}>
-                        {store.userLoggedIn ? "Logout" : "Login"}
-                      </Text>
-                    </TouchableOpacity>
+                      <View
+                        style={{
+                          width: "100%",
+                          height: 180,
+                        }}
+                      >
+                        <TextInput
+                          style={[
+                            styles.input,
+                            allStyle.text,
+                            { marginBottom: 18 },
+                          ]}
+                          placeholder='Email'
+                          value={email}
+                          onChangeText={setEmail}
+                          keyboardType='email-address'
+                          autoCapitalize='none'
+                          autoComplete='email'
+                          placeholderTextColor='#adb5bd'
+                          editable={
+                            (store.userDetails && !store.userDetails.id) ||
+                            !bottomSheetOpen
+                          }
+                          onFocus={focusClear}
+                        />
+                        <TextInput
+                          style={[
+                            styles.input,
+                            allStyle.text,
+                            { marginBottom: 20 },
+                          ]}
+                          placeholder='Password'
+                          value={password}
+                          onChangeText={setPassword}
+                          secureTextEntry
+                          autoCapitalize='none'
+                          autoComplete='password'
+                          placeholderTextColor='#adb5bd'
+                          editable={store.userDetails && !store.userDetails.id}
+                          onPress={focusClear}
+                          onFocus={focusClear}
+                        />
+
+                        <TouchableOpacity
+                          style={[
+                            styles.button,
+                            { width: "100%" },
+                            store.userLoggedIn
+                              ? { backgroundColor: "#2aa198" }
+                              : "",
+                          ]}
+                          onPress={
+                            store.userLoggedIn ? handleLogout : handleLogin
+                          }
+                        >
+                          {store.userIsLoggingIn ? (
+                            <ActivityIndicator size='small' color='#fff' />
+                          ) : (
+                            <Text style={[allStyle.text, allStyle.bold]}>
+                              {store.userLoggedIn ? "Logout" : "Login"}
+                            </Text>
+                          )}
+
+                          {/* <Text style={[allStyle.text, allStyle.bold]}>
+                            {store.userLoggedIn ? "Logout" : "Login"}
+                          </Text> */}
+                        </TouchableOpacity>
+
+                        {!store.userLoggedIn && (
+                          <TouchableOpacity
+                            style={[
+                              styles.button,
+                              {
+                                backgroundColor: "#2aa198",
+                                width: "100%",
+                                marginTop: 50,
+                              },
+                            ]}
+                            onPress={() => openBottomSheet()}
+                          >
+                            <Text style={[allStyle.text, allStyle.bold]}>
+                              Register New Account
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                    {/* green */}
                   </View>
                 </View>
               </View>
@@ -140,6 +237,24 @@ const Login = observer(() => {
           </View>
         </View>
       </View>
+
+      <BottomSheetModalProvider>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <BottomSheetModal
+            ref={bottomSheetModalRef}
+            backgroundStyle={{ borderRadius: 16 }}
+            enablePanDownToClose={true}
+          >
+            <FormUser closeAction={closeBottomSheet} />
+          </BottomSheetModal>
+        </View>
+      </BottomSheetModalProvider>
     </LinearGradient>
   );
 });
@@ -160,6 +275,7 @@ const styles = StyleSheet.create({
   cardBottom: {
     backgroundColor: "rgba(0,0,0,.5)",
     paddingBottom: 10,
+    //    paddingTop: store.userDetails && store.userDetails.id ? 0 : 70,
     paddingRight: 8,
     borderBottomStartRadius: 5,
     borderBottomEndRadius: 5,
@@ -168,7 +284,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    paddingTop: 0,
   },
   input: {
     width: "100%",

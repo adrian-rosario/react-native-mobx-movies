@@ -1,11 +1,12 @@
 import React from "react";
 import { allStyle } from "../../styles/allStyle";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import store from "../../store/store";
 import UserDisplay from "./UserDisplay";
+import { observer } from "mobx-react-lite";
 
-export default function Header() {
+const Header = observer(() => {
   return (
     <View style={styles.headJar}>
       <View style={styles.headL}>
@@ -17,17 +18,21 @@ export default function Header() {
         </Text>
       </View>
       <View style={styles.headR}>
-        {store.userDetails && store.userDetails.name && (
-          <UserDisplay userDetails={store.userDetails} />
+        {store.userLoggedIn && <UserDisplay userDetails={store.userDetails} />}
+
+        {store.userIsLoggingIn && (
+          <View style={{ marginTop: 14, marginRight: 8 }}>
+            <ActivityIndicator size='small' color='#fff' />
+          </View>
         )}
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   headJar: {
-    marginTop: 55,
+    paddingTop: 55,
     flexDirection: "row",
     backgroundColor: "#073642",
     opacity: 1,
@@ -49,3 +54,5 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
 });
+
+export default Header;

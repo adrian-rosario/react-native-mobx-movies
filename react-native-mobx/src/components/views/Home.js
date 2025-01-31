@@ -3,7 +3,6 @@ import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { useEffect } from "react";
 import { useState } from "react";
 import { allStyle } from "../../styles/allStyle";
-import Header from "../view-ui/Header";
 import MoviesHorizonatlScrsoll from "../view-ui/MoviesHorizonatlScrsoll";
 import PullQuote from "../view-ui/PullQuote";
 import MovieInfo from "../view-ui/MovieInfo";
@@ -19,7 +18,7 @@ const Home = observer(() => {
   const [firstLoad, setFirstLoad] = useState(true);
 
   useEffect(() => {
-    if (!moviesResolved) {
+    if (!moviesResolved || store.newMoviePostingCompleted) {
       store.fetcMovies();
     }
 
@@ -36,7 +35,7 @@ const Home = observer(() => {
         setDisplayReview(store.randomRatingForMovie);
       }
     }
-  }, [moviesResolved, ratingsForMovieResolved]);
+  }, [moviesResolved, ratingsForMovieResolved, store.newMoviePostingCompleted]);
 
   // from pull quote double tap
   const loadMovieAndReview = (movieId, theReview) => {
@@ -59,7 +58,7 @@ const Home = observer(() => {
       style={allStyle.gradient}
     >
       <View style={allStyle.topJar}>
-        <Header />
+        {/* <Header /> */}
 
         {store.ratingDetails && (
           <PullQuote
@@ -83,9 +82,9 @@ const Home = observer(() => {
             />
           )}
 
-        {!moviesResolved &&
-          Object.keys(displayMovie).length === 0 &&
-          !(<ActivityIndicator size='large' color='#fff' />)}
+        {!moviesResolved && Object.keys(displayMovie).length === 0 && (
+          <ActivityIndicator size='large' color='#fff' />
+        )}
       </View>
     </LinearGradient>
   );
